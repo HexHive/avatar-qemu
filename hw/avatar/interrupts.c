@@ -11,7 +11,9 @@
 
 #ifdef TARGET_ARM
 #include "target/arm/cpu.h"
-#elif TARGET_MIPS
+#elif defined(TARGET_AVR)
+#include "target/avr/cpu.h"
+#elif defined(TARGET_MIPS)
 #include "target/mips/cpu.h"
 #endif
 
