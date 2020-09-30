@@ -12,9 +12,12 @@
 #include "hw/avatar/avatar_posix.h"
 #include "hw/avatar/remote_memory.h"
 
-#ifdef TARGET_ARM
+#if defined(TARGET_ARM)
 #include "target/arm/cpu.h"
-#elif TARGET_MIPS
+#elif defined(TARGET_MIPS)
+
+#elif defined(TARGET_AVR)
+#include "target/avr/cpu.h"
 #endif
 
 
@@ -22,10 +25,13 @@
 #define AVATAR_RMEMORY(obj) OBJECT_CHECK(AvatarRMemoryState, (obj), TYPE_AVATAR_RMEMORY)
 
 uint64_t get_current_pc(void){
-#ifdef TARGET_ARM
+#if defined(TARGET_ARM)
     ARMCPU *cpu = ARM_CPU(qemu_get_cpu(0));
     return cpu->env.regs[15];
-#elif TARGET_MIPS
+#elif defined(TARGET_MIPS)
+    return 0; /*  implement me */
+#elif defined(TARGET_AVR)
+    // TODO: IMPLEMENT
     return 0; /*  implement me */
 #endif
     return 0;

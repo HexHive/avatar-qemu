@@ -30,7 +30,7 @@
 #include "hw/boards.h"
 #include "hw/qdev-properties.h"
 
-//plattform specific imports
+//platform specific imports
 #ifdef TARGET_ARM
 #include "target/arm/cpu.h"
 #include "hw/arm/armv7m.h"
@@ -41,6 +41,10 @@
 #include "hw/mips/mips.h"
 #include "hw/mips/cpudevs.h"
 #include "target/mips/cpu.h"
+#endif
+
+#ifdef TARGET_AVR
+#include "target/avr/cpu.h"
 #endif
 
 //qapi imports
@@ -392,10 +396,12 @@ static void init_peripheral(QDict *device)
 }
 
 
-#ifdef TARGET_ARM
+#if defined(TARGET_ARM)
 static void set_entry_point(QDict *conf, ARMCPU *cpuu)
-#elif TARGET_MIPS
+#elif defined(TARGET_MIPS)
 static void set_entry_point(QDict *conf, MIPSCPU *cpuu)
+#elif defined(TARGET_AVR)
+static void set_entry_point(QDict *conf, AVRCPU *cpuu)
 #endif
 {
 #ifdef TARGET_ARM
@@ -411,10 +417,12 @@ static void set_entry_point(QDict *conf, MIPSCPU *cpuu)
 
     cpuu->env.regs[15] = entry & (~1);
     cpuu->env.thumb = (entry & 1) == 1 ? 1 : 0;
-#elif TARGET_MIPS
+#elif defined(TARGET_MIPS)
     //Not implemented yet
+#error "MIPS set_entry_point not implemented"
+#elif defined(TARGET_AVR)
+    // TODO: implement
 #endif
-
 }
 
 #ifdef TARGET_ARM
@@ -484,7 +492,7 @@ static ARMCPU *create_cpu(MachineState * ms, QDict *conf)
 }
 
 
-#elif TARGET_MIPS
+#elif defined(TARGET_MIPS)
 static MIPSCPU *create_cpu(MachineState * ms, QDict *conf)
 {
     const char *cpu_model = ms->cpu_type;
@@ -515,15 +523,23 @@ static MIPSCPU *create_cpu(MachineState * ms, QDict *conf)
 
     return cpuu;
 }
+#elif defined(TARGET_AVR)
+static AVRCPU *create_cpu(MachineState * ms, QDict *conf) 
+{
+    // TODO: implement
+    return NULL;
+}
 #endif
 
 
 static void board_init(MachineState * ms)
 {
-#ifdef TARGET_ARM
+#if defined(TARGET_ARM)
     ARMCPU *cpuu;
-#elif TARGET_MIPS
+#elif defined(TARGET_MIPS)
     MIPSCPU *cpuu;
+#elif defined(TARGET_AVR)
+    AVRCPU *cpuu;
 #endif
 
     const char *kernel_filename = ms->kernel_filename;
