@@ -562,7 +562,16 @@ static AVRCPU *create_cpu(MachineState * ms, QDict *conf)
         g_assert(cpu_model);
     }
 
-    if (!cpu_model) cpu_model = "arduino-uno";
+    if (!cpu_model) cpu_model = "avr5-avr-cpu";
+
+    if ((strcmp(cpu_model, "avr5-avr-cpu") !=0 )   && 
+        (strcmp(cpu_model, "avr51-avr-cpu") !=0 )  &&
+        (strcmp(cpu_model, "avr6-avr-cpu") !=0 ) )
+    {
+        fprintf(stderr, "CPU Model Chosen: %s. ", cpu_model);
+        fprintf(stderr, "Invalid choice of CPU definition.\nPlease supply avrX-avr-cpu, where x=5, 51 or 6.\n");
+        exit(1);
+    }
 
     printf("Configurable: Adding processor %s\n", cpu_model);
 
