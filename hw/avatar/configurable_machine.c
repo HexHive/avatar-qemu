@@ -415,8 +415,8 @@ static void set_entry_point(QDict *conf, MIPSCPU *cpuu)
 static void set_entry_point(QDict *conf, AVRCPU *cpuu)
 #endif
 {
-#ifdef TARGET_ARM
     const char *entry_field = "entry_address";
+#ifdef TARGET_ARM
     uint32_t entry;
 
 
@@ -432,7 +432,15 @@ static void set_entry_point(QDict *conf, AVRCPU *cpuu)
     //Not implemented yet
 #error "MIPS set_entry_point not implemented"
 #elif defined(TARGET_AVR)
-    // TODO: implement
+    uint32_t entry;
+
+    if(!qdict_haskey(conf, entry_field))
+        return;
+
+    QDICT_ASSERT_KEY_TYPE(conf, entry_field, QTYPE_QNUM);
+    entry = qdict_get_int(conf, entry_field);
+
+    cpuu->env.pc_w = entry / 2;
 #endif
 }
 
@@ -539,8 +547,45 @@ static MIPSCPU *create_cpu(MachineState * ms, QDict *conf)
 #elif defined(TARGET_AVR)
 static AVRCPU *create_cpu(MachineState * ms, QDict *conf) 
 {
-    // TODO: implement
-    return NULL;
+    const char *cpu_model = ms->cpu_type;
+    ObjectClass *cpu_oc;
+    Object *cpuobj;
+    AVRCPU *cpuu;
+    CPUState *env;
+    //DeviceState *dstate; //generic device if CPU can be initiliazed via qdev-API
+    //BusState* sysbus = sysbus_get_default();
+    //int num_irq = 64;
+
+    if (qdict_haskey(conf, "cpu_model"))
+    {
+        cpu_model = qdict_get_str(conf, "cpu_model");
+        g_assert(cpu_model);
+    }
+
+    if (!cpu_model) cpu_model = "arduino-uno";
+
+    printf("Configurable: Adding processor %s\n", cpu_model);
+
+    cpu_oc = cpu_class_by_name(TYPE_AVR_CPU, cpu_model);
+    if (!cpu_oc) {
+        fprintf(stderr, "Unable to find CPU definition\n");
+        exit(1);
+    }
+
+    cpuobj = object_new(object_class_get_name(cpu_oc));
+
+    object_property_set_bool(cpuobj, "realized", true, &error_fatal);
+    cpuu = AVR_CPU(cpuobj);
+
+    env = (CPUState *) &(cpuu->env);
+    if (!env)
+    {
+            fprintf(stderr, "Unable to find CPU definition\n");
+            exit(1);
+    }
+
+    set_avr_feature(&cpuu->env, AVR_FEATURE_CONFIGURABLE);
+    return cpuu;
 }
 #endif
 
